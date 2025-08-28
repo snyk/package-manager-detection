@@ -1,0 +1,47 @@
+{
+  "name": "@snyk/package-manager-detection",
+  "version": "1.0.0",
+  "description": "A library for detecting manifest files and detecting associated package managers",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier -w src",
+    "format:check": "prettier --check src",
+    "lint": "eslint --quiet --color --cache '**/*.{js,ts}'",
+    "lint:check": "npm run format:check && npm run lint",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snyk/package-manager-detection.git"
+  },
+  "author": "snyk.io",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/snyk/package-manager-detection/issues"
+  },
+  "homepage": "https://github.com/snyk/package-manager-detection#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/jest": "^30.0.0",
+    "eslint": "^9.34.0",
+    "globals": "^16.3.0",
+    "jest": "^30.1.1",
+    "jiti": "^2.5.1",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0"
+  }
+}

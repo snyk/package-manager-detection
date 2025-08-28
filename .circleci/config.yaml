@@ -1,0 +1,90 @@
+version: 2.1
+
+orbs:
+  prodsec: snyk/prodsec-orb@1
+
+defaults: &defaults
+  resource_class: medium
+  docker:
+    - image: cimg/node:20.10
+
+jobs:
+  security-scans:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install npm packages
+          command: npm install
+      - prodsec/security_scans:
+          mode: auto
+          iac-scan: disabled
+
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install npm packages
+          command: npm install
+      - run:
+          name: Run unit tests
+          command: npm test
+
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install npm packages
+          command: npm install
+      - run:
+          name: Run linting and formatting checks
+          command: npm run lint:check
+
+  release-npm:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install npm packages
+          command: npm install
+      - run:
+          name: Build Typescript
+          command: npm run build
+      - run:
+          name: Run semantic-release
+          command: npx semantic-release@19
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - prodsec/secrets-scan:
+          name: Scan repository for secrets
+          context:
+            - snyk-bot-slack
+          channel: snyk-vuln-alerts-unify
+          filters:
+            branches:
+              ignore:
+                - main
+      - security-scans:
+          name: Security Scans
+          context: analysis_unify
+      - lint:
+          name: Linting and formatting
+      - test:
+          name: Unit tests
+      # TODO: once we're ready to release
+      # - release-npm:
+      #     name: Release NPM
+      #     context:
+      #       - team-unify
+      #       - analysis_unify_package-coordinates
+      #     requires:
+      #       - Unit tests
+      #     filters:
+      #       branches:
+      #         only:
+      #           - main

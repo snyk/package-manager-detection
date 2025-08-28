@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: package-manager-detection
+  annotations:
+    github.com/project-slug: snyk/package-manager-detection
+    github.com/team-slug: snyk/managed
+spec:
+  type: external-library
+  lifecycle: '-'
+  owner: managed
