@@ -1,4 +1,4 @@
-import { PNPM_FEATURE_FLAG, SUPPORTED_MANIFEST_FILES } from './types';
+import { SUPPORTED_MANIFEST_FILES, PNPM_FEATURE_FLAG } from './types';
 
 export function isFileCompatible(
   file: string,

@@ -1,7 +1,7 @@
 import { DETECTABLE_PACKAGE_MANAGERS, SupportedPackageManager } from './types';
-import * as pathLib from 'path';
-import * as fs from 'fs';
 import { isFileCompatible } from './utils';
+import * as fs from 'fs';
+import * as pathLib from 'path';
 
 /**
  * Detects the package manager from a file path
