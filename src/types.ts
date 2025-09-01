@@ -1,6 +1,6 @@
 export const PNPM_FEATURE_FLAG = 'enablePnpmCli';
 
-export type SupportedPackageManagers =
+export type SupportedPackageManager =
   | 'rubygems'
   | 'npm'
   | 'yarn'
@@ -55,40 +55,70 @@ export enum SUPPORTED_MANIFEST_FILES {
   PACKAGE_SWIFT = 'Package.swift',
 }
 
-// when file is specified with --file, we look it up here
-// this is also used when --all-projects flag is enabled and auto detection plugin is triggered
-export const DETECTABLE_PACKAGE_MANAGERS: {
-  [key in SUPPORTED_MANIFEST_FILES]: SupportedPackageManagers;
-} = {
-  [SUPPORTED_MANIFEST_FILES.GEMFILE]: 'rubygems',
-  [SUPPORTED_MANIFEST_FILES.GEMFILE_LOCK]: 'rubygems',
-  [SUPPORTED_MANIFEST_FILES.GEMSPEC]: 'rubygems',
-  [SUPPORTED_MANIFEST_FILES.PACKAGE_LOCK_JSON]: 'npm',
-  [SUPPORTED_MANIFEST_FILES.POM_XML]: 'maven',
-  [SUPPORTED_MANIFEST_FILES.JAR]: 'maven',
-  [SUPPORTED_MANIFEST_FILES.WAR]: 'maven',
-  [SUPPORTED_MANIFEST_FILES.BUILD_GRADLE]: 'gradle',
-  [SUPPORTED_MANIFEST_FILES.BUILD_GRADLE_KTS]: 'gradle',
-  [SUPPORTED_MANIFEST_FILES.BUILD_SBT]: 'sbt',
-  [SUPPORTED_MANIFEST_FILES.YARN_LOCK]: 'yarn',
-  [SUPPORTED_MANIFEST_FILES.PNPM_LOCK]: 'pnpm',
-  [SUPPORTED_MANIFEST_FILES.PACKAGE_JSON]: 'npm',
-  [SUPPORTED_MANIFEST_FILES.PIPFILE]: 'pip',
-  [SUPPORTED_MANIFEST_FILES.SETUP_PY]: 'pip',
-  [SUPPORTED_MANIFEST_FILES.REQUIREMENTS_TXT]: 'pip',
-  [SUPPORTED_MANIFEST_FILES.GOPKG_LOCK]: 'golangdep',
-  [SUPPORTED_MANIFEST_FILES.GO_MOD]: 'gomodules',
-  [SUPPORTED_MANIFEST_FILES.VENDOR_JSON]: 'govendor',
-  [SUPPORTED_MANIFEST_FILES.PROJECT_ASSETS_JSON]: 'nuget',
-  [SUPPORTED_MANIFEST_FILES.PACKAGES_CONFIG]: 'nuget',
-  [SUPPORTED_MANIFEST_FILES.PROJECT_JSON]: 'nuget',
-  [SUPPORTED_MANIFEST_FILES.PAKET_DEPENDENCIES]: 'paket',
-  [SUPPORTED_MANIFEST_FILES.COMPOSER_LOCK]: 'composer',
-  [SUPPORTED_MANIFEST_FILES.PODFILE_LOCK]: 'cocoapods',
-  [SUPPORTED_MANIFEST_FILES.COCOAPODS_PODFILE_YAML]: 'cocoapods',
-  [SUPPORTED_MANIFEST_FILES.COCOAPODS_PODFILE]: 'cocoapods',
-  [SUPPORTED_MANIFEST_FILES.PODFILE]: 'cocoapods',
-  [SUPPORTED_MANIFEST_FILES.POETRY_LOCK]: 'poetry',
-  [SUPPORTED_MANIFEST_FILES.MIX_EXS]: 'hex',
-  [SUPPORTED_MANIFEST_FILES.PACKAGE_SWIFT]: 'swift',
+export type PackageManagerDetector = {
+  packageManager: SupportedPackageManager;
+  validateContent?: (content: string) => boolean;
 };
+
+export const DETECTABLE_PACKAGE_MANAGERS = new Map<
+  string,
+  PackageManagerDetector[]
+>([
+  [SUPPORTED_MANIFEST_FILES.GEMFILE, [{ packageManager: 'rubygems' }]],
+  [SUPPORTED_MANIFEST_FILES.GEMFILE_LOCK, [{ packageManager: 'rubygems' }]],
+  [SUPPORTED_MANIFEST_FILES.GEMSPEC, [{ packageManager: 'rubygems' }]],
+  [SUPPORTED_MANIFEST_FILES.PACKAGE_LOCK_JSON, [{ packageManager: 'npm' }]],
+  [SUPPORTED_MANIFEST_FILES.POM_XML, [{ packageManager: 'maven' }]],
+  [SUPPORTED_MANIFEST_FILES.JAR, [{ packageManager: 'maven' }]],
+  [SUPPORTED_MANIFEST_FILES.WAR, [{ packageManager: 'maven' }]],
+  [SUPPORTED_MANIFEST_FILES.BUILD_GRADLE, [{ packageManager: 'gradle' }]],
+  [SUPPORTED_MANIFEST_FILES.BUILD_GRADLE_KTS, [{ packageManager: 'gradle' }]],
+  [SUPPORTED_MANIFEST_FILES.BUILD_SBT, [{ packageManager: 'sbt' }]],
+  [SUPPORTED_MANIFEST_FILES.YARN_LOCK, [{ packageManager: 'yarn' }]],
+  [SUPPORTED_MANIFEST_FILES.PNPM_LOCK, [{ packageManager: 'pnpm' }]],
+  [SUPPORTED_MANIFEST_FILES.PACKAGE_JSON, [{ packageManager: 'npm' }]],
+  [SUPPORTED_MANIFEST_FILES.PIPFILE, [{ packageManager: 'pip' }]],
+  [SUPPORTED_MANIFEST_FILES.SETUP_PY, [{ packageManager: 'pip' }]],
+  [SUPPORTED_MANIFEST_FILES.REQUIREMENTS_TXT, [{ packageManager: 'pip' }]],
+  [SUPPORTED_MANIFEST_FILES.GOPKG_LOCK, [{ packageManager: 'golangdep' }]],
+  [SUPPORTED_MANIFEST_FILES.GO_MOD, [{ packageManager: 'gomodules' }]],
+  [SUPPORTED_MANIFEST_FILES.VENDOR_JSON, [{ packageManager: 'govendor' }]],
+  [SUPPORTED_MANIFEST_FILES.PROJECT_ASSETS_JSON, [{ packageManager: 'nuget' }]],
+  [SUPPORTED_MANIFEST_FILES.PACKAGES_CONFIG, [{ packageManager: 'nuget' }]],
+  [
+    SUPPORTED_MANIFEST_FILES.PROJECT_JSON,
+    [
+      {
+        packageManager: 'nuget',
+        validateContent: (content: string): boolean => {
+          try {
+            const json = JSON.parse(content);
+            return !!(
+              json.dependencies ||
+              json.frameworks ||
+              json.runtimes ||
+              json.packOptions
+            );
+          } catch {
+            return false;
+          }
+        },
+      },
+    ],
+  ],
+  [SUPPORTED_MANIFEST_FILES.PAKET_DEPENDENCIES, [{ packageManager: 'paket' }]],
+  [SUPPORTED_MANIFEST_FILES.COMPOSER_LOCK, [{ packageManager: 'composer' }]],
+  [SUPPORTED_MANIFEST_FILES.PODFILE_LOCK, [{ packageManager: 'cocoapods' }]],
+  [
+    SUPPORTED_MANIFEST_FILES.COCOAPODS_PODFILE_YAML,
+    [{ packageManager: 'cocoapods' }],
+  ],
+  [
+    SUPPORTED_MANIFEST_FILES.COCOAPODS_PODFILE,
+    [{ packageManager: 'cocoapods' }],
+  ],
+  [SUPPORTED_MANIFEST_FILES.PODFILE, [{ packageManager: 'cocoapods' }]],
+  [SUPPORTED_MANIFEST_FILES.POETRY_LOCK, [{ packageManager: 'poetry' }]],
+  [SUPPORTED_MANIFEST_FILES.MIX_EXS, [{ packageManager: 'hex' }]],
+  [SUPPORTED_MANIFEST_FILES.PACKAGE_SWIFT, [{ packageManager: 'swift' }]],
+]);
