@@ -54,7 +54,7 @@ jobs:
           command: npm run build
       - run:
           name: Run semantic-release
-          command: npx semantic-release@19
+          command: npx semantic-release
 
 workflows:
   version: 2
@@ -76,15 +76,16 @@ workflows:
           name: Linting and formatting
       - test:
           name: Unit tests
-      # TODO: once we're ready to release
-      # - release-npm:
-      #     name: Release NPM
-      #     context:
-      #       - team-unify
-      #       - analysis_unify_package-coordinates
-      #     requires:
-      #       - Unit tests
-      #     filters:
-      #       branches:
-      #         only:
-      #           - main
+      - release-npm:
+          name: Release NPM
+          context:
+            - team-unify
+          requires:
+            - Scan repository for secrets
+            - Security Scans
+            - Linting and formatting
+            - Unit tests
+          filters:
+            branches:
+              only:
+                - main
