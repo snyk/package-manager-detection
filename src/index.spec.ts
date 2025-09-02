@@ -1,11 +1,11 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { detectPackageManagerFromFile } from './index';
 import {
   PNPM_FEATURE_FLAG,
   SUPPORTED_MANIFEST_FILES,
   SupportedPackageManager,
 } from './types';
-import * as fs from 'fs';
-import * as path from 'path';
 
 const realFs = jest.requireActual('fs');
 const nugetTestContent = realFs.readFileSync(

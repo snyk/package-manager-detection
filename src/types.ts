@@ -97,7 +97,7 @@ export const DETECTABLE_PACKAGE_MANAGERS = new Map<
               json.dependencies ||
               json.frameworks ||
               json.runtimes ||
-              json.packOptions
+              json.supports
             );
           } catch {
             return false;
