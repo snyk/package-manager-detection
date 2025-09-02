@@ -1,15 +1,41 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { detectPackageManagerFromFile } from './index';
 import {
   PNPM_FEATURE_FLAG,
   SUPPORTED_MANIFEST_FILES,
-  SupportedPackageManagers,
+  SupportedPackageManager,
 } from './types';
 
+const realFs = jest.requireActual('fs');
+const nugetTestContent = realFs.readFileSync(
+  path.join(__dirname, '../testdata/nuget-project.json'),
+  'utf-8',
+);
+const nxTestContent = realFs.readFileSync(
+  path.join(__dirname, '../testdata/nx-project.json'),
+  'utf-8',
+);
+
+jest.mock('fs');
+
 describe('detectPackageManagerFromFile', () => {
+  const mockReadFileSync = fs.readFileSync as jest.MockedFunction<
+    typeof fs.readFileSync
+  >;
+  const mockExistsSync = fs.existsSync as jest.MockedFunction<
+    typeof fs.existsSync
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockExistsSync.mockReturnValue(false);
+  });
+
   describe('basic file detection', () => {
     const testCases: Array<{
       file: SUPPORTED_MANIFEST_FILES;
-      expected: SupportedPackageManagers;
+      expected: SupportedPackageManager;
     }> = [
       // npm
       { file: SUPPORTED_MANIFEST_FILES.PACKAGE_JSON, expected: 'npm' },
@@ -40,7 +66,7 @@ describe('detectPackageManagerFromFile', () => {
       // nuget
       { file: SUPPORTED_MANIFEST_FILES.PROJECT_ASSETS_JSON, expected: 'nuget' },
       { file: SUPPORTED_MANIFEST_FILES.PACKAGES_CONFIG, expected: 'nuget' },
-      { file: SUPPORTED_MANIFEST_FILES.PROJECT_JSON, expected: 'nuget' },
+      // project.json is tested separately with content validation
       // paket
       { file: SUPPORTED_MANIFEST_FILES.PAKET_DEPENDENCIES, expected: 'paket' },
       // composer
@@ -151,6 +177,76 @@ describe('detectPackageManagerFromFile', () => {
         const result = detectPackageManagerFromFile(path);
         expect(result).toBe('npm');
       });
+    });
+  });
+
+  describe('project.json content validation', () => {
+    it('should detect NuGet project.json', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(nugetTestContent);
+
+      const result = detectPackageManagerFromFile(
+        '/path/to/project.json',
+        new Set(),
+      );
+      expect(result).toBe('nuget');
+      expect(mockExistsSync).toHaveBeenCalledWith('/path/to/project.json');
+      expect(mockReadFileSync).toHaveBeenCalledWith(
+        '/path/to/project.json',
+        'utf-8',
+      );
+    });
+
+    it('should throw error for non-NuGet project.json (NX format)', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(nxTestContent);
+
+      expect(() => {
+        detectPackageManagerFromFile('/path/to/project.json', new Set());
+      }).toThrow(
+        'Could not detect package manager for file: /path/to/project.json',
+      );
+      expect(mockExistsSync).toHaveBeenCalledWith('/path/to/project.json');
+    });
+
+    it('should throw error for invalid JSON in project.json', () => {
+      const invalidContent = '{ invalid json }';
+
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(invalidContent);
+
+      expect(() => {
+        detectPackageManagerFromFile('./project.json', new Set());
+      }).toThrow('Could not detect package manager for file: ./project.json');
+      expect(mockExistsSync).toHaveBeenCalledWith('./project.json');
+    });
+
+    it('should fallback to nuget when project.json is passed as basename only', () => {
+      const result = detectPackageManagerFromFile('project.json');
+      expect(result).toBe('nuget');
+      expect(mockExistsSync).toHaveBeenCalledWith('project.json');
+      expect(mockReadFileSync).not.toHaveBeenCalled();
+    });
+
+    it('should read project.json content even when passed as basename if file exists', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(nugetTestContent);
+
+      const result = detectPackageManagerFromFile('project.json');
+      expect(result).toBe('nuget');
+      expect(mockExistsSync).toHaveBeenCalledWith('project.json');
+      expect(mockReadFileSync).toHaveBeenCalledWith('project.json', 'utf-8');
+    });
+
+    it('should handle file read errors gracefully', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockImplementationOnce(() => {
+        throw new Error('ENOENT: no such file or directory');
+      });
+
+      const result = detectPackageManagerFromFile('/path/to/project.json');
+      expect(result).toBe('nuget');
+      expect(mockExistsSync).toHaveBeenCalledWith('/path/to/project.json');
     });
   });
 });
