@@ -4,8 +4,8 @@ metadata:
   name: package-manager-detection
   annotations:
     github.com/project-slug: snyk/package-manager-detection
-    github.com/team-slug: snyk/managed
+    github.com/team-slug: snyk/unify
 spec:
   type: external-library
   lifecycle: '-'
-  owner: managed
+  owner: unify
