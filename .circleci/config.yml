@@ -80,7 +80,7 @@ workflows:
           name: Release NPM
           context:
             - team-unify
-            - analysis_unify_npm_publish
+            - nodejs-lib-release
           requires:
             - Scan repository for secrets
             - Security Scans
