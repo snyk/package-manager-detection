@@ -1,6 +1,6 @@
 {
   "name": "@snyk/package-manager-detection",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "A library for detecting manifest files and detecting associated package managers",
   "main": "dist/index.js",
   "type": "commonjs",
