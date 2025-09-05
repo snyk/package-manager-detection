@@ -80,7 +80,7 @@ workflows:
           name: Release NPM
           context:
             - team-unify
-            - nodejs-lib-release
+            - analysis_unify_npm_publish_package-manager-detection
           requires:
             - Scan repository for secrets
             - Security Scans
