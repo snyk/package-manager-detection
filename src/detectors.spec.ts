@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { detectPackageManagerFromFile } from './index';
+import { detectPackageManagerFromFile } from './detectors';
 import {
   PNPM_FEATURE_FLAG,
   SUPPORTED_MANIFEST_FILES,
