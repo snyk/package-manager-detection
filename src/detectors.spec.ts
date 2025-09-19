@@ -16,6 +16,14 @@ const nxTestContent = realFs.readFileSync(
   path.join(__dirname, '../testdata/nx-project.json'),
   'utf-8',
 );
+const unityPackageJson = realFs.readFileSync(
+  path.join(__dirname, '../testdata/unity-package.json'),
+  'utf-8',
+);
+const npmPackageJson = realFs.readFileSync(
+  path.join(__dirname, '../testdata/npm-package.json'),
+  'utf-8',
+);
 
 jest.mock('fs');
 
@@ -247,6 +255,31 @@ describe('detectPackageManagerFromFile', () => {
       const result = detectPackageManagerFromFile('/path/to/project.json');
       expect(result).toBe('nuget');
       expect(mockExistsSync).toHaveBeenCalledWith('/path/to/project.json');
+    });
+  });
+
+  describe('package.json content validation', () => {
+    it('should detect npm for a typical Node package.json when file exists', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(npmPackageJson);
+
+      const result = detectPackageManagerFromFile('/any/path/package.json');
+      expect(result).toBe('npm');
+      expect(mockReadFileSync).toHaveBeenCalledWith(
+        '/any/path/package.json',
+        'utf-8',
+      );
+    });
+
+    it('should not classify Unity package.json as npm and throw', () => {
+      mockExistsSync.mockReturnValueOnce(true);
+      mockReadFileSync.mockReturnValueOnce(unityPackageJson);
+
+      expect(() =>
+        detectPackageManagerFromFile('/game/Assets/package.json'),
+      ).toThrow(
+        'Could not detect package manager for file: /game/Assets/package.json',
+      );
     });
   });
 });
