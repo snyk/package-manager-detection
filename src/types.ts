@@ -57,6 +57,7 @@ export enum SUPPORTED_MANIFEST_FILES {
 
 export type PackageManagerDetector = {
   packageManager: SupportedPackageManager;
+  /** Returns true if the content is valid for the package manager */
   validateContent?: (content: string) => boolean;
 };
 
@@ -76,7 +77,24 @@ export const DETECTABLE_PACKAGE_MANAGERS = new Map<
   [SUPPORTED_MANIFEST_FILES.BUILD_SBT, [{ packageManager: 'sbt' }]],
   [SUPPORTED_MANIFEST_FILES.YARN_LOCK, [{ packageManager: 'yarn' }]],
   [SUPPORTED_MANIFEST_FILES.PNPM_LOCK, [{ packageManager: 'pnpm' }]],
-  [SUPPORTED_MANIFEST_FILES.PACKAGE_JSON, [{ packageManager: 'npm' }]],
+  [
+    SUPPORTED_MANIFEST_FILES.PACKAGE_JSON,
+    [
+      {
+        packageManager: 'npm',
+        validateContent: (content: string): boolean => {
+          try {
+            const json = JSON.parse(content);
+            // Unity field is recommended, name and version are the only required fields in unity package.json
+            // but these are also required fields in npm package.json so not exhaustive check
+            return !(json.unity || json.unityRelease);
+          } catch {
+            return true;
+          }
+        },
+      },
+    ],
+  ],
   [SUPPORTED_MANIFEST_FILES.PIPFILE, [{ packageManager: 'pip' }]],
   [SUPPORTED_MANIFEST_FILES.SETUP_PY, [{ packageManager: 'pip' }]],
   [SUPPORTED_MANIFEST_FILES.REQUIREMENTS_TXT, [{ packageManager: 'pip' }]],
